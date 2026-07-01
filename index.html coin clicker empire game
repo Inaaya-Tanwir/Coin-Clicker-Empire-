@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Clicker Empire</title>
+    <style>
+        /* ========== ROOT & VARIABLES ========== */
+        :root {
+            --primary: #FFD700;
+            --primary-dark: #FFC700;
+            --secondary: #FF6B6B;
+            --success: #51CF66;
+            --bg: #1a1a2e;
+            --bg-light: #16213e;
+            --bg-lighter: #0f3460;
+            --text: #eaeaea;
+            --text-muted: #b0b0b0;
+            --card-bg: #16213e;
+            --border: #0f3460;
+        }
+
+        body.light-mode {
+            --primary: #FFD700;
+            --primary-dark: #FFC700;
+            --secondary: #FF6B6B;
+            --success: #51CF66;
+            --bg: #f5f5f5;
+            --bg-light: #ffffff;
+            --bg-lighter: #efefef;
+            --text: #333333;
+            --text-muted: #777777;
+            --card-bg: #ffffff;
+            --border: #dddddd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* ========== ANIMATED BACKGROUND ========== */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-light) 100%);
+            opacity: 0.5;
+        }
+
+        .particle-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .floating-particle {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .coin-count {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 15px var(--primary);
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .coin-count-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: 2px solid var(--primary);
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--primary);
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: var(--primary);
+            color: var(--bg);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ========== MAIN CONTAINER ========== */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 250px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 120px);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        /* ========== MAIN GAME AREA ========== */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .clicker-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            min-height: 400px;
+        }
+
+        .coin-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 4px solid var(--primary);
+            background: radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.05));
+            cursor: pointer;
+            font-size: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+            box-shadow: 0 0 30px var(--primary);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .coin-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px var(--primary);
+        }
+
+        .coin-button:active {
+            transform: scale(0.95);
+        }
+
+        .coin-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cps-display {
+            font-size: 18px;
+            color: var(--success);
+            text-align: center;
+        }
+
+        .cps-value {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* ========== SHOP SECTION ========== */
+        .shop-section {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .shop-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .upgrade-card {
+            background: var(--bg-light);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upgrade-card:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .upgrade-card:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .upgrade-name {
+            color: var(--primary);
+        }
+
+        .upgrade-count {
+            color: var(--success);
+        }
+
+        .upgrade-info {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .upgrade-cost {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 5px;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 250px;
+        }
+
+        .panel {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-light);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* ========== ACHIEVEMENTS ========== */
+        .achievements-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .achievement {
+            aspect-ratio: 1;
+            background: var(--bg-light);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: default;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .achievement.unlocked {
+            border-color: var(--primary);
+            background: rgba(255, 215, 0, 0.1);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .achievement[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* ========== NOTIFICATION ========== */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: var(--text);
+            z-index: 1000;
+            animation: slideIn 0.4s ease-out;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-title {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notification-text {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ========== FLOATING TEXT ========== */
+        .floating-text {
+            position: fixed;
+            font-weight: bold;
+            font-size: 24px;
+            color: var(--primary);
+            pointer-events: none;
+            text-shadow: 0 0 10px var(--primary);
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(1.5);
+            }
+        }
+
+        /* ========== MODAL ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 3px solid var(--primary);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .modal-text {
+            color: var(--text);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ========== PRESTIGE ========== */
+        .prestige-info {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .prestige-level {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .prestige-bonus {
+            color: var(--success);
+            font-size: 11px;
+        }
+
+        /* ========== DAILY REWARD ========== */
+        .daily-reward {
+            background: rgba(81, 207, 102, 0.1);
+            border: 2px solid var(--success);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .daily-reward-amount {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .daily-reward-timer {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 2px solid var(--border);
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .coin-button {
+                width: 150px;
+                height: 150px;
+                font-size: 60px;
+            }
+
+            .coin-count {
+                font-size: 24px;
+            }
+
+            .sidebar {
+                min-width: auto;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .controls {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .coin-count {
+                flex: none;
+                min-width: auto;
+            }
+        }
+
+        /* ========== THEMES ========== */
+        body.theme-neon {
+            --primary: #00FF00;
+            --primary-dark: #00DD00;
+            --secondary: #FF00FF;
+            --success: #00FFFF;
+        }
+
+        body.theme-sunset {
+            --primary: #FF6B35;
+            --primary-dark: #FF5722;
+            --secondary: #FF8C42;
+            --success: #FFA630;
+        }
+
+        body.theme-ocean {
+            --primary: #00D9FF;
+            --primary-dark: #00B5D8;
+            --secondary: #0099FF;
+            --success: #00FF88;
+        }
+    </style>
+</head>
+<body>
+    <!-- ANIMATED BACKGROUND -->
+    <div class="animated-bg">
+        <div class="particle-bg" id="particleContainer"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">💰 Coin Clicker Empire</div>
+        <div class="coin-count">
+            <div class="coin-count-label">Total Coins</div>
+            <div id="coinCount">0</div>
+        </div>
+        <div class="controls">
+            <button id="howToPlayBtn" title="How to Play">❓</button>
+            <button id="darkModeBtn" title="Toggle Dark Mode">🌙</button>
+            <button id="themeBtn" title="Change Theme">🎨</button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <!-- GAME AREA -->
+        <div class="game-area">
+            <!-- CLICKER SECTION -->
+            <div class="clicker-section">
+                <button class="coin-button" id="coinButton">💰</button>
+                <div class="cps-display">
+                    <span>Earning </span><span class="cps-value" id="cpsValue">0</span><span> coins per second</span>
+                </div>
+            </div>
+
+            <!-- SHOP SECTION -->
+            <div class="shop-section">
+                <div class="shop-title">🏪 Shop</div>
+                <div class="upgrades-grid" id="upgradesGrid"></div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <!-- PRESTIGE PANEL -->
+            <div class="panel" id="prestigePanel" style="display: none;">
+                <div class="panel-title">✨ Prestige</div>
+                <div class="prestige-info">
+                    <div class="prestige-level">Level: <span id="prestigeLevel">0</span></div>
+                    <div class="prestige-bonus">Bonus: <span id="prestigeBonus">0</span>%</div>
+                </div>
+                <button id="prestigeBtn" style="width: 100%; margin-top: 10px;">Reset for Prestige</button>
+            </div>
+
+            <!-- DAILY REWARD PANEL -->
+            <div class="panel" id="dailyRewardPanel" style="display: none;">
+                <div class="panel-title">🎁 Daily Reward</div>
+                <div class="daily-reward" id="dailyRewardStatus">
+                    <div class="daily-reward-amount">Claim 50 bonus coins!</div>
+                    <button id="claimRewardBtn" style="width: 100%; margin-top: 8px;">Claim</button>
+                </div>
+            </div>
+
+            <!-- ACHIEVEMENTS PANEL -->
+            <div class="panel">
+                <div class="panel-title">🏆 Achievements</div>
+                <div class="achievements-container" id="achievementsContainer"></div>
+            </div>
+
+            <!-- STATISTICS PANEL -->
+            <div class="panel">
+                <div class="panel-title">📊 Stats</div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Earned:</span>
+                    <span class="stat-value" id="totalEarned">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Clicks:</span>
+                    <span class="stat-value" id="totalClicks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Time Played:</span>
+                    <span class="stat-value" id="timePlayed">0m</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="achievementProgress"></div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="panel" style="padding: 10px;">
+                <button id="resetBtn" style="width: 100%; margin-bottom: 10px;">Reset Save</button>
+                <button id="exportBtn" style="width: 100%;">Export Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-title" id="confirmTitle">Confirm</div>
+            <div class="modal-text" id="confirmText"></div>
+            <div class="modal-buttons">
+                <button id="confirmYes">Yes</button>
+                <button id="confirmNo">No</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="themeModal">
+        <div class="modal-content">
+            <div class="modal-title">Choose Theme</div>
+            <div class="modal-buttons" style="flex-direction: column;">
+                <button id="themeDefault">🌟 Default</button>
+                <button id="themeNeon">💚 Neon</button>
+                <button id="themeSunset">🌅 Sunset</button>
+                <button id="themeOcean">🌊 Ocean</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="howToPlayModal">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+            <div class="modal-title">📖 How to Play</div>
+            
+            <div style="text-align: left; margin-bottom: 20px; font-size: 14px; line-height: 1.8;">
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">🎮 OBJECTIVE</div>
+                    <div>Click the coin button to earn coins! The more coins you earn, the more upgrades you can buy to automate your earnings.</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">💰 BASIC GAMEPLAY</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Click the large coin button to earn 1 coin per click</li>
+                        <li>Watch your coin counter increase in the top center</li>
+                        <li>Your progress is automatically saved every 5 seconds</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">🏪 UPGRADES & SHOP</div>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Cursor (🖱️)</strong> - 10 coins → +1 coin/second</li>
+                        <li><strong>Worker (👷)</strong> - 100 coins → +10 coins/second</li>
+                        <li><strong>Factory (🏭)</strong> - 1,000 coins → +100 coins/second</li>
+                        <li><strong>Bank (🏦)</strong> - 10,000 coins → +1,000 coins/second</li>
+                    </ul>
+                    <div style="margin-top: 8px; color: var(--text-muted); font-size: 12px;">Each upgrade costs 15% more than the last purchase!</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">🏆 ACHIEVEMENTS</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Unlock special achievements as you reach milestones</li>
+                        <li>Check your progress in the Achievements panel</li>
+                        <li>Earn achievements for clicks, coins, and upgrades</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">✨ PRESTIGE SYSTEM</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Once you earn 100,000 coins, the Prestige option unlocks</li>
+                        <li>Reset your progress to gain a permanent bonus to earnings</li>
+                        <li>Each prestige level gives you +1% more coins per second</li>
+                        <li>Your upgrades reset, but the bonus stacks forever!</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">🎁 DAILY REWARDS</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Claim 50 bonus coins once per 24 hours</li>
+                        <li>Daily rewards increase with your prestige level</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">📊 STATISTICS</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Track your total coins earned</li>
+                        <li>Monitor your clicks per game</li>
+                        <li>Check coins per second (CPS) generation</li>
+                        <li>See your playtime statistics</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">⚙️ FEATURES</div>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>🌙 Dark Mode</strong> - Toggle between light and dark themes</li>
+                        <li><strong>🎨 Themes</strong> - Choose from multiple color schemes</li>
+                        <li><strong>📱 Responsive</strong> - Play on desktop or mobile</li>
+                        <li><strong>💾 Auto-Save</strong> - Your progress saves automatically</li>
+                        <li><strong>🔊 Sound Effects</strong> - Enjoy immersive audio feedback</li>
+                        <li><strong>✨ Animations</strong> - Watch particles and floating text</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">💡 TIPS & TRICKS</div>
+                    <ul style="margin-left: 20px;">
+                        <li>Focus on upgrades - passive income is key!</li>
+                        <li>Each upgrade level gets more expensive, plan ahead</li>
+                        <li>Don't forget to claim your daily rewards</li>
+                        <li>Use Prestige to get permanent bonuses for your next run</li>
+                        <li>Come back after some time - you'll earn coins offline!</li>
+                    </ul>
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid var(--border);">
+                    <div style="color: var(--primary); font-weight: bold; font-size: 16px; margin-bottom: 10px;">About the App</div>
+                    <div style="text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.8;">
+                        <div style="margin-bottom: 8px;">App created by: <span style="color: var(--primary); font-weight: bold;">Inaaya Tanwir</span></div>
+                        <div>App name: <span style="color: var(--primary); font-weight: bold;">Coin Clicker Empire</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="closeHowToPlayBtn" style="width: 100%; margin-top: 15px;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== GAME STATE ==========
+        const gameState = {
+            coins: 0,
+            totalEarned: 0,
+            totalClicks: 0,
+            cps: 0,
+            startTime: Date.now(),
+            prestigeLevel: 0,
+            prestigeBonus: 0,
+            lastDailyReward: 0,
+            theme: 'default',
+            darkMode: true,
+            upgrades: {
+                cursor: { owned: 0, basePrice: 10, priceMultiplier: 1.15, cps: 1 },
+                worker: { owned: 0, basePrice: 100, priceMultiplier: 1.15, cps: 10 },
+                factory: { owned: 0, basePrice: 1000, priceMultiplier: 1.15, cps: 100 },
+                bank: { owned: 0, basePrice: 10000, priceMultiplier: 1.15, cps: 1000 }
+            },
+            achievements: {
+                firstClick: false,
+                coins100: false,
+                coins1000: false,
+                coins10000: false,
+                firstUpgrade: false,
+                coins100000: false,
+                coins1000000: false
+            }
+        };
+
+        // ========== DOM ELEMENTS ==========
+        const coinButton = document.getElementById('coinButton');
+        const coinCountDisplay = document.getElementById('coinCount');
+        const cpsValueDisplay = document.getElementById('cpsValue');
+        const upgradesGrid = document.getElementById('upgradesGrid');
+        const achievementsContainer = document.getElementById('achievementsContainer');
+        const darkModeBtn = document.getElementById('darkModeBtn');
+        const themeBtn = document.getElementById('themeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const confirmModal = document.getElementById('confirmModal');
+        const themeModal = document.getElementById('themeModal');
+
+        // ========== UPGRADE DEFINITIONS ==========
+        const upgradeDefs = [
+            { key: 'cursor', name: 'Cursor', icon: '🖱️' },
+            { key: 'worker', name: 'Worker', icon: '👷' },
+            { key: 'factory', name: 'Factory', icon: '🏭' },
+            { key: 'bank', name: 'Bank', icon: '🏦' }
+        ];
+
+        // ========== ACHIEVEMENT DEFINITIONS ==========
+        const achievementDefs = [
+            { key: 'firstClick', name: 'First Click', icon: '👆', condition: () => gameState.totalClicks >= 1 },
+            { key: 'coins100', name: '100 Coins', icon: '💯', condition: () => gameState.totalEarned >= 100 },
+            { key: 'coins1000', name: '1K Coins', icon: '🎯', condition: () => gameState.totalEarned >= 1000 },
+            { key: 'coins10000', name: '10K Coins', icon: '🔥', condition: () => gameState.totalEarned >= 10000 },
+            { key: 'firstUpgrade', name: 'First Upgrade', icon: '⭐', condition: () => Object.values(gameState.upgrades).some(u => u.owned > 0) },
+            { key: 'coins100000', name: '100K Coins', icon: '👑', condition: () => gameState.totalEarned >= 100000 },
+            { key: 'coins1000000', name: '1M Coins', icon: '💎', condition: () => gameState.totalEarned >= 1000000 }
+        ];
+
+        // ========== UTILITIES ==========
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+            return Math.floor(num);
+        }
+
+        function getUpgradePrice(upgrade) {
+            return Math.floor(gameState.upgrades[upgrade].basePrice * Math.pow(gameState.upgrades[upgrade].priceMultiplier, gameState.upgrades[upgrade].owned));
+        }
+
+        function saveGame() {
+            localStorage.setItem('coinClickerEmpireSave', JSON.stringify(gameState));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('coinClickerEmpireSave');
+            if (saved) {
+                Object.assign(gameState, JSON.parse(saved));
+                // Calculate offline progress
+                const timeSinceLastSave = (Date.now() - (gameState.lastSaveTime || Date.now())) / 1000;
+                const offlineCoins = Math.min(gameState.cps * timeSinceLastSave, gameState.cps * 3600); // Max 1 hour offline
+                if (offlineCoins > 0) {
+                    gameState.coins += offlineCoins;
+                    gameState.totalEarned += offlineCoins;
+                    showNotification('Offline Progress', `Earned ${formatNumber(offlineCoins)} coins while away!`);
+                }
+                gameState.lastSaveTime = Date.now();
+            }
+        }
+
+        function showNotification(title, text) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `<div class="notification-title">${title}</div><div class="notification-text">${text}</div>`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function createFloatingText(x, y, text) {
+            const floatingText = document.createElement('div');
+            floatingText.className = 'floating-text';
+            floatingText.textContent = text;
+            floatingText.style.left = x + 'px';
+            floatingText.style.top = y + 'px';
+            document.body.appendChild(floatingText);
+            setTimeout(() => floatingText.remove(), 1000);
+        }
+
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'floating-particle';
+            particle.textContent = '✨';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.fontSize = Math.random() * 20 + 10 + 'px';
+            particle.style.animation = `floatUp ${0.8 + Math.random() * 0.4}s ease-out forwards`;
+            particle.style.opacity = Math.random() * 0.5 + 0.5;
+            document.getElementById('particleContainer').appendChild(particle);
+            setTimeout(() => particle.remove(), 1200);
+        }
+
+        function playSound(type) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'click') {
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } else if (type === 'upgrade') {
+                oscillator.frequency.value = 1200;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } else if (type === 'achievement') {
+                oscillator.frequency.value = 1600;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            }
+        }
+
+        // ========== GAME LOGIC ==========
+        function addCoins(amount) {
+            gameState.coins += amount;
+            gameState.totalEarned += amount;
+            updateDisplay();
+            checkAchievements();
+        }
+
+        function click(event) {
+            gameState.totalClicks++;
+            addCoins(1);
+            playSound('click');
+            
+            const rect = coinButton.getBoundingClientRect();
+            const x = event.clientX || rect.left + rect.width / 2;
+            const y = event.clientY || rect.top + rect.height / 2;
+            
+            createFloatingText(x, y, '+1');
+            for (let i = 0; i < 3; i++) {
+                createParticle(x + Math.random() * 40 - 20, y + Math.random() * 40 - 20);
+            }
+            
+            checkAchievements();
+        }
+
+        function buyUpgrade(upgradeKey) {
+            const upgrade = gameState.upgrades[upgradeKey];
+            const price = getUpgradePrice(upgradeKey);
+            
+            if (gameState.coins >= price) {
+                gameState.coins -= price;
+                upgrade.owned++;
+                gameState.cps += upgrade.cps;
+                playSound('upgrade');
+                showNotification('Upgrade Purchased!', `You now have ${upgrade.owned} ${upgradeKey}(s)`);
+                updateDisplay();
+                checkAchievements();
+                
+                if (upgrade.owned === 1) {
+                    checkAchievements();
+                }
+            }
+        }
+
+        function calculateCPS() {
+            let cps = 0;
+            Object.values(gameState.upgrades).forEach(upgrade => {
+                cps += upgrade.owned * upgrade.cps;
+            });
+            // Apply prestige bonus
+            cps *= (1 + gameState.prestigeBonus / 100);
+            return cps;
+        }
+
+        function updateDisplay() {
+            gameState.cps = calculateCPS();
+            
+            coinCountDisplay.textContent = formatNumber(gameState.coins);
+            cpsValueDisplay.textContent = formatNumber(gameState.cps);
+            
+            document.getElementById('totalEarned').textContent = formatNumber(gameState.totalEarned);
+            document.getElementById('totalClicks').textContent = gameState.totalClicks;
+            
+            const timePlayed = Math.floor((Date.now() - gameState.startTime) / 60000);
+            document.getElementById('timePlayed').textContent = timePlayed + 'm';
+            
+            // Update upgrade buttons
+            upgradeDefs.forEach(upgradeDef => {
+                const upgrade = gameState.upgrades[upgradeDef.key];
+                const price = getUpgradePrice(upgradeDef.key);
+                const button = document.querySelector(`[data-upgrade="${upgradeDef.key}"]`);
+                
+                if (button) {
+                    button.disabled = gameState.coins < price;
+                    button.innerHTML = `
+                        <div class="upgrade-header">
+                            <span class="upgrade-name">${upgradeDef.icon} ${upgradeDef.name}</span>
+                            <span class="upgrade-count">×${upgrade.owned}</span>
+                        </div>
+                        <div class="upgrade-info">+${formatNumber(upgrade.cps)}/s</div>
+                        <div class="upgrade-cost">Cost: ${formatNumber(price)}</div>
+                    `;
+                }
+            });
+            
+            saveGame();
+        }
+
+        function checkAchievements() {
+            achievementDefs.forEach(achDef => {
+                if (!gameState.achievements[achDef.key] && achDef.condition()) {
+                    gameState.achievements[achDef.key] = true;
+                    playSound('achievement');
+                    showNotification('Achievement Unlocked!', achDef.name);
+                    updateAchievements();
+                    saveGame();
+                }
+            });
+            
+            // Update achievement progress
+            const nextAchievement = achievementDefs.find(a => !gameState.achievements[a.key]);
+            if (nextAchievement) {
+                let progress = 0;
+                if (nextAchievement.key.includes('coins')) {
+                    const targetCoins = parseInt(nextAchievement.key.replace('coins', ''));
+                    progress = (gameState.totalEarned / targetCoins) * 100;
+                }
+                document.getElementById('achievementProgress').style.width = Math.min(progress, 100) + '%';
+            } else {
+                document.getElementById('achievementProgress').style.width = '100%';
+            }
+        }
+
+        function updateAchievements() {
+            achievementsContainer.innerHTML = achievementDefs.map(achDef => `
+                <div class="achievement ${gameState.achievements[achDef.key] ? 'unlocked' : ''}" 
+                     data-tooltip="${achDef.name}"
+                     title="${achDef.name}">
+                    ${achDef.icon}
+                </div>
+            `).join('');
+        }
+
+        function updatePrestige() {
+            const prestigePanel = document.getElementById('prestigePanel');
+            if (gameState.totalEarned >= 100000) {
+                prestigePanel.style.display = 'block';
+                document.getElementById('prestigeLevel').textContent = gameState.prestigeLevel;
+                document.getElementById('prestigeBonus').textContent = (gameState.prestigeBonus).toFixed(1);
+            }
+        }
+
+        function applyPrestige() {
+            const gain = Math.floor(gameState.totalEarned / 100000);
+            if (gain > 0) {
+                gameState.prestigeLevel++;
+                gameState.prestigeBonus += gain * 1;
+                gameState.coins = 0;
+                gameState.totalEarned = 0;
+                gameState.totalClicks = 0;
+                Object.values(gameState.upgrades).forEach(u => {
+                    u.owned = 0;
+                });
+                gameState.achievements = Object.keys(gameState.achievements).reduce((acc, key) => {
+                    acc[key] = false;
+                    return acc;
+                }, {});
+                gameState.cps = 0;
+                
+                showNotification('Prestige!', `You gained ${gain}% bonus!`);
+                updateDisplay();
+                updateAchievements();
+                updatePrestige();
+            }
+        }
+
+        function claimDailyReward() {
+            const now = Date.now();
+            const lastReward = gameState.lastDailyReward || 0;
+            
+            if (now - lastReward >= 86400000) { // 24 hours
+                const reward = 50 * (1 + gameState.prestigeLevel * 0.1); // Prestige increases reward
+                addCoins(reward);
+                gameState.lastDailyReward = now;
+                updateDailyReward();
+                showNotification('Daily Reward!', `You claimed ${formatNumber(reward)} bonus coins!`);
+            }
+        }
+
+        function updateDailyReward() {
+            const dailyPanel = document.getElementById('dailyRewardPanel');
+            const now = Date.now();
+            const lastReward = gameState.lastDailyReward || 0;
+            const timeSinceReward = now - lastReward;
+            const canClaim = timeSinceReward >= 86400000;
+            
+            if (!canClaim) {
+                const timeUntil = 86400000 - timeSinceReward;
+                const hours = Math.floor(timeUntil / 3600000);
+                const minutes = Math.floor((timeUntil % 3600000) / 60000);
+                dailyPanel.style.display = 'block';
+                
+                const status = document.getElementById('dailyRewardStatus');
+                status.innerHTML = `
+                    <div class="daily-reward-timer">Next reward in ${hours}h ${minutes}m</div>
+                    <button disabled style="width: 100%; margin-top: 8px;">Come back later</button>
+                `;
+            } else {
+                dailyPanel.style.display = 'block';
+                const status = document.getElementById('dailyRewardStatus');
+                const reward = 50 * (1 + gameState.prestigeLevel * 0.1);
+                status.innerHTML = `
+                    <div class="daily-reward-amount">Claim ${formatNumber(reward)} bonus coins!</div>
+                    <button id="claimRewardBtn" style="width: 100%; margin-top: 8px;">Claim</button>
+                `;
+                document.getElementById('claimRewardBtn').onclick = claimDailyReward;
+            }
+        }
+
+        // ========== UI INITIALIZATION ==========
+        function initializeUpgrades() {
+            upgradesGrid.innerHTML = upgradeDefs.map(upgradeDef => `
+                <button class="upgrade-card" data-upgrade="${upgradeDef.key}"></button>
+            `).join('');
+            
+            upgradeDefs.forEach(upgradeDef => {
+                const button = document.querySelector(`[data-upgrade="${upgradeDef.key}"]`);
+                button.onclick = () => buyUpgrade(upgradeDef.key);
+            });
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('light-mode');
+            gameState.darkMode = !gameState.darkMode;
+            saveGame();
+        }
+
+        function changeTheme(themeName) {
+            document.body.className = '';
+            if (themeName !== 'default') {
+                document.body.classList.add('theme-' + themeName);
+            }
+            if (!gameState.darkMode) {
+                document.body.classList.add('light-mode');
+            }
+            gameState.theme = themeName;
+            saveGame();
+            themeModal.classList.remove('active');
+        }
+
+        function showConfirmDialog(title, text, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmText').textContent = text;
+            
+            const yes = document.getElementById('confirmYes');
+            const no = document.getElementById('confirmNo');
+            
+            yes.onclick = () => {
+                onConfirm();
+                confirmModal.classList.remove('active');
+            };
+            
+            no.onclick = () => confirmModal.classList.remove('active');
+            
+            confirmModal.classList.add('active');
+        }
+
+        // ========== EVENT LISTENERS ==========
+        coinButton.addEventListener('click', click);
+        
+        document.getElementById('howToPlayBtn').addEventListener('click', () => {
+            document.getElementById('howToPlayModal').classList.add('active');
+        });
+        
+        document.getElementById('closeHowToPlayBtn').addEventListener('click', () => {
+            document.getElementById('howToPlayModal').classList.remove('active');
+        });
+        
+        darkModeBtn.addEventListener('click', toggleDarkMode);
+        themeBtn.addEventListener('click', () => themeModal.classList.add('active'));
+
+        resetBtn.addEventListener('click', () => {
+            showConfirmDialog('Reset Game', 'Are you sure? This will erase all progress!', () => {
+                localStorage.removeItem('coinClickerEmpireSave');
+                location.reload();
+            });
+        });
+
+        exportBtn.addEventListener('click', () => {
+            const save = JSON.stringify(gameState, null, 2);
+            const blob = new Blob([save], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'coin-clicker-save.json';
+            a.click();
+        });
+
+        // Theme selection
+        document.getElementById('themeDefault').addEventListener('click', () => changeTheme('default'));
+        document.getElementById('themeNeon').addEventListener('click', () => changeTheme('neon'));
+        document.getElementById('themeSunset').addEventListener('click', () => changeTheme('sunset'));
+        document.getElementById('themeOcean').addEventListener('click', () => changeTheme('ocean'));
+
+        // Prestige button
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'prestigeBtn') {
+                showConfirmDialog('Prestige?', `Reset your progress to gain ${Math.floor(gameState.totalEarned / 100000)}% permanent bonus!`, applyPrestige);
+            }
+        });
+
+        // ========== AUTO-SAVE AND GAME LOOP ==========
+        setInterval(() => {
+            gameState.coins += gameState.cps / 10; // Update 10 times per second
+            updateDisplay();
+        }, 100);
+
+        setInterval(() => {
+            saveGame();
+        }, 5000); // Auto-save every 5 seconds
+
+        setInterval(() => {
+            updateDailyReward();
+        }, 60000); // Update daily reward every minute
+
+        // ========== INITIALIZATION ==========
+        window.addEventListener('load', () => {
+            loadGame();
+            initializeUpgrades();
+            updateDisplay();
+            updateAchievements();
+            updatePrestige();
+            updateDailyReward();
+            checkAchievements();
+            
+            // Apply saved theme and dark mode
+            if (!gameState.darkMode) {
+                document.body.classList.add('light-mode');
+            }
+            if (gameState.theme !== 'default') {
+                document.body.classList.add('theme-' + gameState.theme);
+            }
+        });
+    </script>
+</body>
+</html>
